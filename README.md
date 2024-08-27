@@ -8,10 +8,10 @@ En caso de que la validación sea exitosa imprimir: `action: test_echo_server | 
 El script deberá ubicarse en la raíz del proyecto. Netcat no debe ser instalado en la máquina _host_ y no se puede exponer puertos del servidor para realizar la comunicación (hint: `docker network`). `
 
 ### Solucion: 
-Para ejecutar el script seguimos los sgts pasos: 
+Para ejecutar el script usamos los sgts comandos: 
 ```
-    1. chmod +x validar-echo-server.sh
-    2. ./validar-echo-server.sh
+    chmod +x validar-echo-server.sh
+    ./validar-echo-server.sh
 ``` 
 
 ### Ejemplo: 
@@ -19,9 +19,12 @@ Para verificar el comportamiento correcto del echo server:
 1. Levantamos el server usando: ```make docker-compose-up```  
 2. Abrimos el log para visualizar el output: ``` make docker-compose-logs ``` 
 3. Ejecutamos el script anteriormente mencionado ```./validar-echo-server.sh```   
-4. Observar como el server nos retorna el mismo mensaje enviado "hello world" y obtenmos un **sucess**
-5. Finalmene hacemos un stop y un down: 
-``` docker compose -f ./netcat/docker-compose-netcat.yaml stop
+4. Se creara un container con el netcat instalado, se conectara al servidor y enviara el ensaje **hello world**.
+5. El server nos retorna el "hello world" y al comparar lo enviado y recibido obtendremos un **sucess**
+5. Finalmene hacemos los stop y los down: 
+``` 
+    docker compose -f ./netcat/docker-compose-netcat.yaml stop
     docker compose -f ./netcat/docker-compose-netcat.yaml down
+    make docker-compose-down
 ```   
 <img src ="./img/ej3_part_1.png">
