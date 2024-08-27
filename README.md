@@ -17,19 +17,21 @@ echo "Nombre del archivo de salida: $1"
 echo "Cantidad de clientes: $2"
 python3 mi-generador.py $1 $2
 ```
-### Solucion Ej1: 
+### Solucion: 
 Para ejecutar el script y generar el docker-compose con la cantida de clientes pedida se sigue el ejemplo de la consigna  por ej: 
-```py
+```
+    chmod +x ./generar-compose.sh 
     ./generar-compose.sh docker-compose-new.yaml 3
 ```
-1. En caso de ingresar una cantida de clientes negativo su valor pasara a ser 1. 
+1. Esto creara un **docker-compose-new.yaml** con 3 clientes.
+1. En caso de ingresar una cantidad de clientes negativa su valor pasara a ser 1. 
 1. Ademas se informa la creacion del archivo y el cierre del mismo (si se pudo) por log. 
 
 ### Ejemplo : 
 1. Primero se deben crear las imagenes para eso usamos el make.
 2. Ejecutamos el script generar-compose.sh con sus argumentos. 
 3. Ejecutamos el Docker compose (con el flag -f) usando el archivo yaml obtenido del script.
-4. Cuando los clientes terminen usar control + C para detener lo containers y luego un "down" para eliminar los containers.
+4. Cuando los clientes terminen usar control + C para detener lo containers y luego un "down" para remover los containers y la red.
 
 Comandos: 
 ``` 
