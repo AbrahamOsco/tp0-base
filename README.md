@@ -8,6 +8,11 @@ Modificar el cliente y el servidor para lograr que realizar cambios en el archiv
 ```
     docker compose -f docker-compose-dev.yaml up
 ```
+### Explicacion de la implementacion:
+1. Para implementar los cambios dinamicos en los archivos de configuracion sin buildear las imagenes y sin modificar la imagen original, simplemente 
+se agrego un campo volumes con el formato **./ruta_relativa_host**:**/ruta_absoluta_cliente** en los services server y client1 respectivamente.
+
+
 ### Ejemplo: 
 1. Modificar los archivos config.ini y config.yaml (ej: cambiamos en ambos el puerto a 8087, en el server el listen_backlog a 72 y el period a 4s). 
 <img src="./img/ej2_part1.png">
