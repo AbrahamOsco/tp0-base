@@ -71,7 +71,7 @@ def close_file(file_docker_compose):
         return SUCCESS
     else: 
         logging.error("action: close_file | result: fail | "\
-                      "error: File was not closed correctly")
+                      "error: file_was_not_closed_correctly")
         return FAIL
 
 def generate_docker_compose_with_n_clients(file_name: str, number_clients:str):
@@ -82,8 +82,8 @@ def generate_docker_compose_with_n_clients(file_name: str, number_clients:str):
     docker_compose_str += generate_network()
     file_docker_compose = open(file_name, 'w')
     file_docker_compose.write(docker_compose_str)
-    logging.info(f"action: a docker compose '{file_name}' was created with" \
-                 f" {number_clients} clients | result: success ")
+    logging.info(f"action: a_docker_compose_'{file_name}'_was_created_with" \
+                 f"_{number_clients}_clients | result: success ")
     return close_file(file_docker_compose)
     
 def main():
