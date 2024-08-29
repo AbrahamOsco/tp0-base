@@ -30,8 +30,7 @@ docker-compose-up: docker-image
 .PHONY: docker-compose-up
 
 docker-compose-down:
-	docker compose -f docker-compose-dev.yaml stop -t 1
-	docker compose -f docker-compose-dev.yaml down
+	docker compose -f docker-compose-dev.yaml down -t 7
 .PHONY: docker-compose-down
 
 docker-compose-logs:

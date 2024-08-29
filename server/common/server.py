@@ -1,6 +1,6 @@
 import socket
 import logging
-
+import signal 
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -8,6 +8,14 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
+        self.was_killed = False
+        signal.signal(signal.SIGTERM, self.end_gracefully)
+
+    def end_gracefully(self, signum, frame):
+        logging.info(f"action: handling_the_signal_{signum} | result : success ")
+        self.was_killed = True
+        self._server_socket.close()
+        logging.info(f"action: closing_acceptor_socket | result : success | socket_closed: {self._server_socket._closed}")
 
     def run(self):
         """
@@ -20,9 +28,11 @@ class Server:
 
         # TODO: Modify this program to handle signal to graceful shutdown
         # the server
-        while True:
+        while not self.was_killed:
             client_sock = self.__accept_new_connection()
-            self.__handle_client_connection(client_sock)
+            if (client_sock != None):
+                self.__handle_client_connection(client_sock)
+
 
     def __handle_client_connection(self, client_sock):
         """
@@ -42,17 +52,26 @@ class Server:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
+            logging.info(f"action: close_the_client_socket | result: sucess| socket closed : {client_sock._closed} ")
 
     def __accept_new_connection(self):
         """
         Accept new connections
-
         Function blocks until a connection to a client is made.
         Then connection created is printed and returned
         """
 
         # Connection arrived
         logging.info('action: accept_connections | result: in_progress')
-        c, addr = self._server_socket.accept()
-        logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
+        try:
+            c, addr = self._server_socket.accept()
+            logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
+        except OSError:
+            if(self.was_killed):
+                logging.info(f"action: catching_exception_for_closing_the_acceptor_socket | result : success")
+            else:
+                self._server_socket.close()
+                logging.info(f"action: another_signal_closed_the_acceptor_socket | result : success | socket_closed: {self._server_socket._closed} ")
+            return None
         return c
+

@@ -20,7 +20,6 @@ def initialize_config():
     config = ConfigParser(os.environ)
     # If config.ini does not exists original config object is not modified
     config.read("config.ini")
-
     config_params = {}
     try:
         config_params["port"] = int(os.getenv('SERVER_PORT', config["DEFAULT"]["SERVER_PORT"]))
@@ -50,6 +49,8 @@ def main():
     # Initialize server and start server loop
     server = Server(port, listen_backlog)
     server.run()
+    logging.shutdown()
+
 
 def initialize_log(logging_level):
     """
