@@ -9,10 +9,10 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self.was_killed = False
-        signal.signal(signal.SIGTERM, self.end_gracefully)
+        signal.signal(signal.SIGTERM, self.handling_signal_sigterm)
 
-    def end_gracefully(self, signum, frame):
-        logging.info(f"action: handling_the_signal_{signum} | result : success ")
+    def handling_signal_sigterm(self, signum, frame):
+        logging.info(f"action: receive_signal | result : success | signal_number: {signum} ")
         self.was_killed = True
         self._server_socket.close()
         logging.info(f"action: closing_acceptor_socket | result : success | socket_closed: {self._server_socket._closed}")
