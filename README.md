@@ -5,13 +5,13 @@
 Modificar el cliente y el servidor para lograr que realizar cambios en el archivo de configuración no requiera un nuevo build de las imágenes de Docker para que los mismos sean efectivos. La configuración a través del archivo correspondiente (`config.ini` y `config.yaml`, dependiendo de la aplicación) debe ser inyectada en el container y persistida afuera de la imagen (hint: `docker volumes`).
 
 ### Solucion:
-1. Comando para ejecutar los containers (luego de modificar los archivos config.ini y config.yaml) sin builder nuevamente la imagen:
+1. Comando para ejecutar los containers (luego de modificar los archivos config.ini y config.yaml) sin buildear nuevamente la imagen:
 ```
     docker compose -f docker-compose-dev.yaml up
 ```
 ### Explicacion de la implementacion:
-1. Para implementar los cambios dinamicos en los archivos de configuracion sin buildear las imagenes y sin modificar la imagen original, simplemente 
-se agrego un campo volumes con el formato **./ruta_relativa_host**:**/ruta_absoluta_cliente** en los services server y client1 respectivamente.
+1. Para implementar los cambios dinamicos en los archivos de configuracion sin buildear nuevamente las imagenes y sin modificar la imagen original, simplemente
+en el **docker-compose-dev.yaml** se agrego un campo volumes con el formato **./ruta_relativa_host:/ruta_absoluta_cliente** en los services server y client1 con los archivos configuracion pedidos respectivamente.
 
 
 ### Ejemplo: 
