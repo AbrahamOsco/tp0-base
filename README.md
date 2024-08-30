@@ -37,9 +37,9 @@ de clientes elegida, cada funcion cumple el ppio solid (Single Responsability) h
 
 ### Ejemplo : 
 1. Primero se deben crear las imagenes para eso usamos el make.
-2. Ejecutamos el script generar-compose.sh con sus argumentos. 
+2. Ejecutamos el script **generar-compose.sh** con sus argumentos. 
 3. Ejecutamos el Docker compose (con el flag -f) usando el archivo yaml obtenido del script.
-4. Cuando los clientes terminen usar control + C para detener lo containers y luego un "down" para remover los containers y la red.
+4. Cuando los clientes terminen usar control + C para hacer un "stop" a lo containers y luego un "down" para remover los containers y la red.
 
 Comandos: 
 ``` 
@@ -48,6 +48,7 @@ Comandos:
     docker compose -f docker-compose-new.yaml up
     docker compose -f docker-compose-new.yaml down
 ``` 
+
 <img src='./img/ej1_part_2.png'>
 
 <img src='./img/ej1_part_3.png'>
