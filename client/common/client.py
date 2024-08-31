@@ -22,23 +22,33 @@ class Client:
         signal.signal(signal.SIGTERM, self.handling_signal_sigterm)
 
     def handling_signal_sigterm(self, signum, frame):
-        logging.info(f"action: receive_signal | result : success | signal_number: {signum} ")
+        logging.info(f"action: receive_signal | result : success | client_id: {self.client_config.id} | signal_number: {signum} ")
         self.was_killed = True
 
     def connect(self):
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect((self.client_config.ip, self.client_config.port))
-    
+        try:
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client_socket.connect((self.client_config.ip, self.client_config.port))
+        except (socket.error, ConnectionRefusedError) as e:
+            logging.error(f"action: connect | result: fail | client_id: {self.client_config.id} | error: {e}")
+            self.client_socket = None
+
     def close_socket(self):
         self.client_socket.close()
-        logging.info(f"action: close_the_client_socket | result: sucess| socket closed : {self.client_socket._closed} ")                
-        
+        if self.client_socket._closed:
+            logging.info(f"action: close_the_client_socket | result: sucess| socket closed : {self.client_socket._closed} ")                
+        else:
+            logging.info(f"action: closing_socket | result: fail | client_id: {self.client_config.id}")                
+
 
     def run(self):
         for i in range(self.client_config.loop_amount):
             if (self.was_killed):
-                break
+                return
             self.connect()
+            if (self.client_socket == None):
+                logging.error(f"action: loop_finished | result: fail | client_id: {self.client_config.id}")
+                return
             self.client_socket.send(f"[CLIENT {self.client_config.id}] Message N°{i+1}\n".encode('utf-8'))
             try:
                 msg =  self.client_socket.recv(1024).rstrip().decode('utf-8')
