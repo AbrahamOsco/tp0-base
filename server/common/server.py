@@ -1,7 +1,9 @@
 import logging
 import signal 
 from socketTCP import SocketTCP
-from protocol import Protocol 
+from common.serverProtocol import ServerProtocol
+from DTO.ackDTO import AckDTO
+from common.utils import store_bet_dto
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -26,7 +28,7 @@ class Server:
             socket_peer = self.accept_new_connection()
             if (socket_peer != None):
                 self.socket_peer = socket_peer
-                self.protocol = Protocol(socket_peer)
+                self.protocol = ServerProtocol(socket_peer)
                 self.handle_client_connection()
 
     def handle_client_connection(self):
@@ -36,15 +38,17 @@ class Server:
         client socket will also be closed
         """
         try:
-            msg = self.protocol.recv_string()
-            addr = self.socket_peer.get_peer_name()
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg.rstrip()}')
-            self.protocol.send_string("{}".format(msg))
+            bet_dto = self.protocol.recv_bet_dto()
+            store_bet_dto(bet_dto)
+            logging.info(f"action: apuesta_almacenada | result: success | dni: ${bet_dto.dni} | numero: ${bet_dto.number}")
+            ack_dto = AckDTO(response=0, current_status="bet stored successfully")
+            self.protocol.send_ack_dto(ack_dto)
+            #logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg.rstrip()}')
         except (OSError, RuntimeError) as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
             self.socket_peer.close()
-            logging.info(f"action: close_the_client_socket | result: sucess| socket closed : {self.socket_peer.is_closed()} ")
+            logging.info(f"action: close_the_client_socket | result: sucess| socket closed : {self.socket_peer.is_closed()}")
 
     def accept_new_connection(self):
         """
