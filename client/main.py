@@ -2,7 +2,8 @@ from configparser import ConfigParser
 import yaml
 import logging
 import os
-from common.client import ClientConfiguration, Client
+from common.client import Client
+from common.clientConfiguration import ClientConfiguration
 
 CONFIG_FILE = "./config.yaml"
 SECOND = "s"

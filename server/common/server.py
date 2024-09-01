@@ -1,21 +1,19 @@
-import socket
 import logging
 import signal 
+from socketTCP import SocketTCP
+from protocol import Protocol 
 
 class Server:
     def __init__(self, port, listen_backlog):
-        # Initialize server socket
-        self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._server_socket.bind(('', port))
-        self._server_socket.listen(listen_backlog)
+        self.socket_acceptor = SocketTCP(ip="", port = port, listen_backlog= listen_backlog)
         self.was_killed = False
-        signal.signal(signal.SIGTERM, self.handling_signal_sigterm)
+        signal.signal(signal.SIGTERM, self.handler_signal_sigterm)
 
-    def handling_signal_sigterm(self, signum, frame):
+    def handler_signal_sigterm(self, signum, frame):
         logging.info(f"action: receive_signal | result : success | signal_number: {signum} ")
         self.was_killed = True
-        self._server_socket.close()
-        logging.info(f"action: closing_acceptor_socket | result : success | socket_closed: {self._server_socket._closed}")
+        self.socket_acceptor.close()
+        logging.info(f"action: closing_acceptor_socket | result : success | socket_closed: {self.socket_acceptor.is_closed()}")
 
     def run(self):
         """
@@ -24,53 +22,47 @@ class Server:
         communication with a client. After client with communucation
         finishes, servers starts to accept new connections again
         """
-
-        # TODO: Modify this program to handle signal to graceful shutdown
-        # the server
         while not self.was_killed:
-            client_sock = self.__accept_new_connection()
-            if (client_sock != None):
-                self.__handle_client_connection(client_sock)
+            socket_peer = self.accept_new_connection()
+            if (socket_peer != None):
+                self.socket_peer = socket_peer
+                self.protocol = Protocol(socket_peer)
+                self.handle_client_connection()
 
-
-    def __handle_client_connection(self, client_sock):
+    def handle_client_connection(self):
         """
         Read message from a specific client socket and closes the socket
-
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
         try:
-            # TODO: Modify the receive to avoid short-reads
-            msg = client_sock.recv(1024).rstrip().decode('utf-8')
-            addr = client_sock.getpeername()
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg}')
-            # TODO: Modify the send to avoid short-writes
-            client_sock.send("{}\n".format(msg).encode('utf-8'))
-        except OSError as e:
-            logging.error("action: receive_message | result: fail | error: {e}")
+            msg = self.protocol.recv_string()
+            addr = self.socket_peer.get_peer_name()
+            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg.rstrip()}')
+            self.protocol.send_string("{}".format(msg))
+        except (OSError, RuntimeError) as e:
+            logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
-            client_sock.close()
-            logging.info(f"action: close_the_client_socket | result: sucess| socket closed : {client_sock._closed} ")
+            self.socket_peer.close()
+            logging.info(f"action: close_the_client_socket | result: sucess| socket closed : {self.socket_peer.is_closed()} ")
 
-    def __accept_new_connection(self):
+    def accept_new_connection(self):
         """
         Accept new connections
         Function blocks until a connection to a client is made.
         Then connection created is printed and returned
         """
 
-        # Connection arrived
         logging.info('action: accept_connections | result: in_progress')
         try:
-            c, addr = self._server_socket.accept()
+            socket_peer, addr = self.socket_acceptor.accept()
             logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
         except OSError:
             if(self.was_killed):
                 logging.info(f"action: catching_exception_for_closing_the_acceptor_socket | result : success")
             else:
-                self._server_socket.close()
-                logging.info(f"action: another_signal_closed_the_acceptor_socket | result : success | socket_closed: {self._server_socket._closed} ")
+                self.socket_acceptor.close()
+                logging.info(f"action: another_signal_closed_the_acceptor_socket | result : success | socket_closed: {self.socket_acceptor.is_closed()} ")
             return None
-        return c
+        return socket_peer
 
