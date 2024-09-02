@@ -1,7 +1,6 @@
-name: tp0_netcat
+name: tp0
 services:
   netcat:
-    container_name: netcat_container
     image: netcat:v1
     networks:
       - tp0_testing_net
