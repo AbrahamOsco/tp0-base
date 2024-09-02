@@ -24,7 +24,7 @@ def generate_server():
            "    container_name: server\n" \
            "    image: server:latest\n" \
            "    volumes:\n" \
-           "      - /server/config.ini:/config.ini\n" \
+           "      - ./server/config.ini:/config.ini\n" \
            "    entrypoint: python3 /main.py\n" \
            "    environment:\n" \
            "      - PYTHONUNBUFFERED=1\n" + add_network()
