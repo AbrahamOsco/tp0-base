@@ -17,16 +17,17 @@ def header():
 
 def add_network():
     return "    networks:\n" \
-           "      - testing_net"
+           "      - testing_net\n"
 
 def generate_server():
     return "  server:\n" \
            "    container_name: server\n" \
            "    image: server:latest\n" \
+           "    volumes:\n" \
+           "      - ./server:/server\n" \
            "    entrypoint: python3 /main.py\n" \
            "    environment:\n" \
-           "      - PYTHONUNBUFFERED=1\n" \
-           "      - LOGGING_LEVEL=DEBUG\n" + add_network() + "\n"
+           "      - PYTHONUNBUFFERED=1\n" + add_network()
 
 def generate_network():
     return "\nnetworks:\n" \
@@ -42,8 +43,7 @@ def generate_a_client(id: str):
            "    image: client:latest\n" \
            "    entrypoint: /client\n" \
            "    environment:\n" \
-           "      - CLI_ID=" + id + "\n" \
-           "      - CLI_LOG_LEVEL=DEBUG\n" + add_network() + "\n" \
+           "      - CLI_ID=" + id + "\n" + add_network() + \
            "    depends_on:\n" \
            "      - server\n"
 
