@@ -24,7 +24,7 @@ def generate_server():
            "    container_name: server\n" \
            "    image: server:latest\n" \
            "    volumes:\n" \
-           "      - ./server:/server\n" \
+           "      - /server/config.ini:/config.ini\n" \
            "    entrypoint: python3 /main.py\n" \
            "    environment:\n" \
            "      - PYTHONUNBUFFERED=1\n" + add_network()
@@ -41,6 +41,8 @@ def generate_a_client(id: str):
     return "\n  client" + id + ":\n" \
            "    container_name: client" + id + "\n" \
            "    image: client:latest\n" \
+           "    volumes:\n" \
+           "      - ./client/config.yaml:/config.yaml\n" \
            "    entrypoint: /client\n" \
            "    environment:\n" \
            "      - CLI_ID=" + id + "\n" + add_network() + \
