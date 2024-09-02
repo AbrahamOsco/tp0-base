@@ -66,12 +66,7 @@ func HandlerSignal(thereWasASignal *bool, idClient string) {
 
 func (c *Client) CloseSocket() {
 	if c.conn != nil {
-		err := c.conn.Close()
-		if err == nil {
-			log.Infof("action: closing_socket | result: success | client_id: %v", c.config.ID)
-		} else {
-			log.Infof("action: closing_socket | result: fail | client_id: %v | error: %v", c.config.ID, err)
-		}
+		c.conn.Close()
 	}
 }
 
