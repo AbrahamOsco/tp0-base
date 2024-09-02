@@ -21,7 +21,7 @@ Se deberá implementar un módulo de comunicación entre el cliente y el servido
 * Correcto empleo de sockets, incluyendo manejo de errores y evitando los fenómenos conocidos como [_short read y short write_](https://cs61.seas.harvard.edu/site/2018/FileDescriptors/).
 
 
-### Observaciones : 
+### Solucion : 
 1. Como cada cliente (Agencia quinela) envia una unica apuesta (no tiene sentido q se envie 5 veces el mismo numero) cambie el loop amount a 1. 
 1. Para la implementacion del protocolo se uso el patron DTO creando los DTO: ackDTO y betDTO.
 1. Ademas se creo la clase socketTCP que encapsula el comporaiento para evitar los short read/write y ademas recibe solo bytes y retorna bytes, es el protocolo quien se encarga de pasar los numeros (u8) (u16) (strings) a bytes para luego enviarlo por el objeto socket.
@@ -49,7 +49,7 @@ El server recibe el betDTO y envia un **AckDTO**:
 El cliente recibe el ackDTO y termina. Ese es todo el protocolo por ahora en el ejercicio 5. 
 El servidor recibe correctamente las apuestas y las escribe en el csv. 
 
-### Ejemplo: 
+### Ejecuion y ejemplo: 
 1. Para ejecutar el programa usamos: 
 ```
     make docker-compose-up
