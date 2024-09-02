@@ -18,6 +18,7 @@ en el **docker-compose-dev.yaml** se agrego un campo volumes con el formato **./
 1. Modificar los archivos config.ini y config.yaml (ej: cambiamos en ambos el puerto a 8087, en el server el listen_backlog a 72 y el period a 4s). 
 <img src="./img/ej2_part1.png">
 
+<<<<<<< HEAD
 2. Ejecutamos el comando ```docker compose -f docker-compose-dev.yaml up``` , no tiene sentido usar el **make docker-compose-up** porque tiene el 
     flag --build que obliga a rebuildear la imagen al ejecutar el comando.
 <img src="./img/ej2_part2.png">
@@ -26,4 +27,3 @@ en el **docker-compose-dev.yaml** se agrego un campo volumes con el formato **./
 <img src="./img/ej2_part3.png">
 
 Las imagenes no han cambiado hace 32 horas, sin embargo estamos modficando los archivos de configuracion en el container, ahora si quisieramos una nueva imagen apartir de estos cambios tendriamos que hacer un commit.
-
