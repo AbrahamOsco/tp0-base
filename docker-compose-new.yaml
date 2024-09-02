@@ -4,23 +4,19 @@ services:
     container_name: server
     image: server:latest
     volumes:
-      - ./server/config.ini:/config.ini
+      - ./server:/server
     entrypoint: python3 /main.py
     environment:
       - PYTHONUNBUFFERED=1
-      - LOGGING_LEVEL=DEBUG
     networks:
       - testing_net
 
   client1:
     container_name: client1
     image: client:latest
-    volumes:
-      - ./client/config.yaml:/config.yaml
     entrypoint: /client
     environment:
       - CLI_ID=1
-      - CLI_LOG_LEVEL=DEBUG
     networks:
       - testing_net
     depends_on:
@@ -29,12 +25,9 @@ services:
   client2:
     container_name: client2
     image: client:latest
-    volumes:
-      - ./client/config.yaml:/config.yaml
     entrypoint: /client
     environment:
       - CLI_ID=2
-      - CLI_LOG_LEVEL=DEBUG
     networks:
       - testing_net
     depends_on:
@@ -43,12 +36,9 @@ services:
   client3:
     container_name: client3
     image: client:latest
-    volumes:
-      - ./client/config.yaml:/config.yaml
     entrypoint: /client
     environment:
       - CLI_ID=3
-      - CLI_LOG_LEVEL=DEBUG
     networks:
       - testing_net
     depends_on:
