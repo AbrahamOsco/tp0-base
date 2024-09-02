@@ -3,7 +3,7 @@ server:
   address: "server:8087"
 loop:
   amount: 5
-  period: "4s"
+  period: "5s"
 log:
   level: "INFO"
 batch:
