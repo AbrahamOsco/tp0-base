@@ -17,6 +17,9 @@ echo "Nombre del archivo de salida: $1"
 echo "Cantidad de clientes: $2"
 python3 mi-generador.py $1 $2
 ```
+### Tests ✅:
+<img src='./img/ej1_test.png'>
+
 ### Solucion: 
 Para ejecutar el script y generar el docker-compose con la cantida de clientes pedida se sigue el ejemplo de la consigna  por ej: 
 ```
