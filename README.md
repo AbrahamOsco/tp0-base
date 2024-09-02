@@ -9,6 +9,8 @@ En caso de que la validación sea exitosa imprimir: action: test_echo_server | r
 
 El script deberá ubicarse en la raíz del proyecto. Netcat no debe ser instalado en la máquina host y no se puede exponer puertos del servidor para realizar la comunicación (hint: docker network). `
 
+### Tests ✅:
+<img src='./img/ej3_test.png'>
 
 ### Solucion: 
 Para ejecutar el script usamos los sgts comandos: 
