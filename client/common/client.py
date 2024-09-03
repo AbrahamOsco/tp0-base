@@ -33,11 +33,12 @@ class Client:
         return is_connected
 
     def close_socket(self):
-        if(self.socket and not self.socket.is_closed()):
-            self.socket.close()
-            logging.info(f"action: closing_socket | result: sucess| socket closed : {self.socket.is_closed()} ")
-        else: 
-            logging.info(f"action: closing_socket | result: fail| socket does not exist")
+        if(self.socket):
+            if not self.socket.is_closed():
+                self.socket.close()
+                logging.info(f"action: closing_socket | result: sucess | socket closed : {self.socket.is_closed()} ")
+        else:
+            logging.info(f"action: closing_socket | result: fail | socket does not exist")
         
     def get_bet_dto(self) -> BetDTO:
         name = os.getenv("NOMBRE")
@@ -64,13 +65,14 @@ class Client:
             logging.info(f"action: get_batch_dto | result: sucess | event: batch size is correct | bytes_total_size: {bytes_total_size}")
             return batchDTO
 
-    def handler_dto_messages(self, batch_dto: BatchDTO):
+    def handler_dto(self, batch_dto: BatchDTO):
         self.protocol.send_batch_dto(batch_dto)
         ack_dto = self.protocol.recv_ack_dto()
         if ack_dto.response == 0:
             logging.info(f"action: apuestas_enviadas | result: success | event: {ack_dto.current_status} ")
-        else:
+        elif ack_dto.response == 1 :
             logging.error(f"action: apuestas_enviadas | result: fail | event: {ack_dto.current_status} ")
+
 
     def start(self):
         for i in range(self.client_config.loop_amount):
@@ -80,12 +82,13 @@ class Client:
                 batch_dto = self.get_batch_dto()
                 if not batch_dto:
                     return
-                self.handler_dto_messages(batch_dto)
+                self.handler_dto(batch_dto)
             except (OSError, RuntimeError) as e:
                 logging.error(f"action: receive_message | result: fail | client_id: {self.client_config.id} | error: {e}")
                 return
             self.close_socket()
             time.sleep(self.client_config.loop_period)
+        
         logging.info(f"action: loop_finished | result: success | client_id: {self.client_config.id}")
         
     def run(self):

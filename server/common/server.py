@@ -2,9 +2,15 @@ import logging
 import signal 
 from socketTCP import SocketTCP
 from common.serverProtocol import ServerProtocol
-from DTO.ackDTO import AckDTO
+from DTO.ackDTO import AckDTO, OPERATION_TYPE_ACK
+from DTO.batchDTO import BatchDTO, OPERATION_TYPE_BATCH
+
 from common.utils import store_batch_dto
+
 MAX_TICKET_NUMBER = 9998
+SUCCESS = 0
+SOME_FAILED_BETS = 1
+
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -26,11 +32,11 @@ class Server:
                 self.protocol = ServerProtocol(socket_peer)
                 self.handle_client_connection()
 
-    def handler_dto_messages(self, batch_dto):
-        batch_dto = self.protocol.recv_batch_dto()
-        self.handler_ack_dto(batch_dto)
+    def handler_dto(self):
+        a_dto = self.protocol.recv_dto()
+        a_dto.execute(self)
 
-    def handler_ack_dto(self, batch_dto):
+    def send_ack_dto(self, batch_dto):
         bets = batch_dto.bets
         ack_dto = None
         for bet_dto in bets:
@@ -45,16 +51,13 @@ class Server:
             logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(bets)}")
         self.protocol.send_ack_dto(ack_dto)
         store_batch_dto(bets)
+    
 
     def handle_client_connection(self):
-        batch_dto = None
         try:
-            self.handler_dto_messages(batch_dto)
+            self.handler_dto()
         except (OSError, RuntimeError) as e:
-            if batch_dto != None:
-                logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(batch_dto.bets)}")
-            else:
-                logging.error(f"action: apuesta_recibida | result: fail | cantidad: 0 | event: probably the client disconnected")
+            logging.error(f"action: apuesta_recibida | result: fail | cantidad: 0 | event: probably the client disconnected")
         finally:
             self.socket_peer.close()
             logging.info(f"action: close_the_client_socket | result: sucess| socket closed : {self.socket_peer.is_closed()}")

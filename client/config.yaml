@@ -2,7 +2,7 @@ id: 1
 server:
   address: "server:12345"
 loop:
-  amount: 100
+  amount: 10
   period: "1s"
 log:
   level: "INFO"
