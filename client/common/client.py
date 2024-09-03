@@ -3,6 +3,7 @@ import logging
 import time
 import signal
 from socketTCP import SocketTCP
+from DTO.ackDTO import AckDTO, ACK_SUCCESS_BATCH, ACK_ERROR_IN_BET_BATCH
 from DTO.betDTO import BetDTO
 from DTO.batchDTO import BatchDTO
 from common.clientProtocol import ClientProtocol
@@ -33,12 +34,13 @@ class Client:
         return is_connected
 
     def close_socket(self):
-        if(self.socket and not self.socket.is_closed()):
-            self.socket.close()
-            logging.info(f"action: closing_socket | result: sucess| socket closed : {self.socket.is_closed()} ")
-        else: 
-            logging.info(f"action: closing_socket | result: fail| socket does not exist")
-        
+        if(self.socket):
+            if not self.socket.is_closed():
+                self.socket.close()
+                logging.info(f"action: closing_socket | result: sucess | socket closed : {self.socket.is_closed()} ")
+        else:
+            logging.info(f"action: closing_socket | result: fail | socket does not exist")
+
     def get_bet_dto(self) -> BetDTO:
         name = os.getenv("NOMBRE")
         last_name = os.getenv("APELLIDO")
@@ -67,10 +69,10 @@ class Client:
     def handler_dto_messages(self, batch_dto: BatchDTO):
         self.protocol.send_batch_dto(batch_dto)
         ack_dto = self.protocol.recv_ack_dto()
-        if ack_dto.response == 0:
-            logging.info(f"action: apuestas_enviadas | result: success | event: {ack_dto.current_status} ")
-        else:
-            logging.error(f"action: apuestas_enviadas | result: fail | event: {ack_dto.current_status} ")
+        if ack_dto.response == ACK_SUCCESS_BATCH:
+            logging.info(f"action: apuestas_enviadas | result: success | event: {ack_dto.current_status}")
+        elif ack_dto.response == ACK_ERROR_IN_BET_BATCH:
+            logging.error(f"action: apuestas_enviadas | result: fail | event: {ack_dto.current_status}")
 
     def start(self):
         for i in range(self.client_config.loop_amount):

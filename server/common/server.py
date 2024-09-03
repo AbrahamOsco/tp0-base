@@ -26,7 +26,7 @@ class Server:
                 self.protocol = ServerProtocol(socket_peer)
                 self.handle_client_connection()
 
-    def handler_dto_messages(self, batch_dto):
+    def handler_dto(self):
         batch_dto = self.protocol.recv_batch_dto()
         self.handler_ack_dto(batch_dto)
 
@@ -47,13 +47,9 @@ class Server:
         store_batch_dto(bets)
 
     def handle_client_connection(self):
-        batch_dto = None
         try:
-            self.handler_dto_messages(batch_dto)
+            self.handler_dto()
         except (OSError, RuntimeError) as e:
-            if batch_dto != None:
-                logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(batch_dto.bets)}")
-            else:
                 logging.error(f"action: apuesta_recibida | result: fail | cantidad: 0 | event: probably the client disconnected")
         finally:
             self.socket_peer.close()
