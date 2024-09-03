@@ -29,7 +29,7 @@ class Client:
 
     def close_socket(self):
         self.socket.close()
-        if self.socket.is_closed():
+        if (self.socket and self.socket.is_closed()):
             logging.info(f"action: closing_socket | result: sucess| socket closed : {self.socket.is_closed()} ")
     
     def get_bet_dto(self) -> BetDTO:
@@ -40,11 +40,10 @@ class Client:
         number = int(os.getenv("NUMERO"))
         if not name or not last_name or not dni or not birthday or not number:
             logging.error(f"action: send_bet_dto | result: fail | client_id: {self.client_config.id} ")
-            self.socket.close()
             return None
         return BetDTO(int(self.client_config.id), name, last_name, dni, birthday, number)
         
-    def run(self):
+    def start(self):
         for i in range(self.client_config.loop_amount):
             if (not self.connect() or self.was_killed):
                 return
@@ -58,10 +57,13 @@ class Client:
                     logging.info(f"action: apuesta_enviada | result: success | dni: ${bet_dto.dni} | numero: ${bet_dto.number}")
             except (OSError, RuntimeError) as e:
                 logging.error(f"action: receive_message | result: fail | client_id: {self.client_config.id} | error: {e}")
-                self.close_socket()
                 return
             self.close_socket()
             #logging.info(f"action: receive_message | result: success | client_id: {self.client_config.id} | msg: {msg}")
             time.sleep(self.client_config.loop_period)
         logging.info(f"action: loop_finished | result: success | client_id: {self.client_config.id}")
 
+    def run(self):
+        self.start()
+        self.close_socket()
+    
