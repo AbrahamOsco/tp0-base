@@ -33,7 +33,7 @@ class Client:
         return is_connected
 
     def close_socket(self):
-        if(self.socket):
+        if(self.socket and not self.socket.is_closed()):
             self.socket.close()
             logging.info(f"action: closing_socket | result: sucess| socket closed : {self.socket.is_closed()} ")
         else: 

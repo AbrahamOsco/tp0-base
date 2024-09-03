@@ -68,4 +68,15 @@ En el cliente (caso de la agencia3 que tenia un number = 998):
 ```
 <img src= './img/ej6_part3.png'>
 
+Garantizando la liberacion de recursos podemos ejecutar en medio de la ejecucion: 
 
+```
+    docker kill --signal=SIGTERM server
+    docker kill --signal=SIGTERM client1
+    docker kill --signal=SIGTERM client2
+    docker kill --signal=SIGTERM client3
+    docker kill --signal=SIGTERM client4
+    docker kill --signal=SIGTERM client5
+``` 
+Observamos que se cierran el socket del cliente y el csv, del lado del server se cierra el socket aceptador(listener).
+<img src= './img/ej6_part4.png'>
