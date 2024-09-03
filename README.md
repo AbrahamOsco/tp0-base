@@ -1,41 +1,25 @@
 # TP0: Docker + Comunicaciones + Concurrencia
 ## Parte 2: Repaso de Comunicaciones
 
-### Ejercicio N°6:
-Modificar los clientes para que envíen varias apuestas a la vez (modalidad conocida como procesamiento por _chunks_ o _batchs_). La información de cada agencia será simulada por la ingesta de su archivo numerado correspondiente, provisto por la cátedra dentro de `.data/datasets.zip`.
-Los _batchs_ permiten que el cliente registre varias apuestas en una misma consulta, acortando tiempos de transmisión y procesamiento.
+### Ejercicio N°7:
+Modificar los clientes para que notifiquen al servidor al finalizar con el envío de todas las apuestas y así proceder con el sorteo.
+Inmediatamente después de la notificacion, los clientes consultarán la lista de ganadores del sorteo correspondientes a su agencia.
+Una vez el cliente obtenga los resultados, deberá imprimir por log: `action: consulta_ganadores | result: success | cant_ganadores: ${CANT}`.
 
-En el servidor, si todas las apuestas del *batch* fueron procesadas correctamente, imprimir por log: `action: apuesta_recibida | result: success | cantidad: ${CANTIDAD_DE_APUESTAS}`. En caso de detectar un error con alguna de las apuestas, debe responder con un código de error a elección e imprimir: `action: apuesta_recibida | result: fail | cantidad: ${CANTIDAD_DE_APUESTAS}`.
-
-La cantidad máxima de apuestas dentro de cada _batch_ debe ser configurable desde config.yaml. Respetar la clave `batch: maxAmount`, pero modificar el valor por defecto de modo tal que los paquetes no excedan los 8kB. 
-
-El servidor, por otro lado, deberá responder con éxito solamente si todas las apuestas del _batch_ fueron procesadas correctamente.
+El servidor deberá esperar la notificación de las 5 agencias para considerar que se realizó el sorteo e imprimir por log: `action: sorteo | result: success`.
+Luego de este evento, podrá verificar cada apuesta con las funciones `load_bets(...)` y `has_won(...)` y retornar los DNI de los ganadores de la agencia en cuestión. Antes del sorteo, no podrá responder consultas por la lista de ganadores.
+Las funciones `load_bets(...)` y `has_won(...)` son provistas por la cátedra y no podrán ser modificadas por el alumno.
 
 
 ### Solucion : 
-1. Se creo la clase agencyReader para desacoplar la logica de la lectura del csv del client.
-2. Se garantiza la liberacion de recursos al recibir una SIGTERM en el caso de cliente o server.  
-3. Se cambia el amount a 10, el loop a 100 para enviar varios BatchDTO, el period a 1s para poder enviar mas seguido y no dormir tanto 😴.
-4. Se calcula el peso de cada BatchDTO y se compara con la CTE **MAX_BATCH_SIZE** (8192) si es mayor no se envia el BatchDTO (podemos verlo con un amount = 800 ).
+1. 
+2. 
+3. 
+4. 
 
 ### Protocolo: 
 Protocolo mas basico explicado desde cero en el EJ5.
-En este ejercicio se agrega un nuevo DTO: **BatchDTO** basicamente esta compuesto por: 
-1. operation_type (u8): 1 byte
-2. Una lista de BetDTO: para su serializacion se envia 2 bytes | (Para el tamanio de la lista) y luego se envia cada BetDTO. 
-3. El protocolo para como enviar cada BetDTO esta en el ej5. Aca se reutiliza los metodos como **send_bet_dto**, **recv_bet_dto** de Client protocol y server protocol respectivamente. 
 
-El server recibe el BatchDTO y envia un **AckDTO** como confirmacion del mensaje:
-1. operation_type (u8): 1 byte 
-2. response (u8): 1 byte | indica 0 si recibio ok el mensaje, 1 si hubo un error (En este caso **se considera error los number mayor a 9998**).
-3. current_status (string): 2 bytes + bytes del string.
-
-
-Si hubo algun error o no el server loggea el resultado final de revisar el BatchDTO:
-1. Si hubo error el server manda un ACK con el response 1 y el mensaje del error. 
-2. Si no hubo error el server manda un ACK con el response en 0 y el mensaje exitoso.
-
-El cliente recibe el AckDTO y muestra el mensaje ya sea de error o no.
 
 ### Ejemplo: 
 1. Para ejecutar el programa usamos: 
