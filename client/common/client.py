@@ -4,6 +4,7 @@ import time
 import signal
 from socketTCP import SocketTCP
 from DTO.betDTO import BetDTO
+from DTO.ackDTO import AckDTO, ACK_SUCCESS_BATCH, ACK_ERROR_IN_BET_BATCH
 from DTO.batchDTO import BatchDTO
 from common.clientProtocol import ClientProtocol
 from common.clientConfiguration import ClientConfiguration
@@ -68,9 +69,9 @@ class Client:
     def handler_dto(self, batch_dto: BatchDTO):
         self.protocol.send_batch_dto(batch_dto)
         ack_dto = self.protocol.recv_ack_dto()
-        if ack_dto.response == 0:
+        if ack_dto.response == ACK_SUCCESS_BATCH:
             logging.info(f"action: apuestas_enviadas | result: success | event: {ack_dto.current_status} ")
-        elif ack_dto.response == 1 :
+        elif ack_dto.response == ACK_ERROR_IN_BET_BATCH:
             logging.error(f"action: apuestas_enviadas | result: fail | event: {ack_dto.current_status} ")
 
 
