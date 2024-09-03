@@ -3,6 +3,7 @@ import logging
 import time
 import signal
 from socketTCP import SocketTCP
+from DTO.ackDTO import AckDTO, ACK_SUCCESS_BET
 from DTO.betDTO import BetDTO
 from common.clientProtocol import ClientProtocol
 from common.clientConfiguration import ClientConfiguration
@@ -53,7 +54,7 @@ class Client:
                     return
                 self.protocol.send_bet_dto(bet_dto)
                 ack_dto = self.protocol.recv_ack_dto()
-                if ack_dto.response == 0:
+                if ack_dto.response == ACK_SUCCESS_BET:
                     logging.info(f"action: apuesta_enviada | result: success | dni: ${bet_dto.dni} | numero: ${bet_dto.number}")
             except (OSError, RuntimeError) as e:
                 logging.error(f"action: receive_message | result: fail | client_id: {self.client_config.id} | error: {e}")

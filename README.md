@@ -43,7 +43,7 @@ En primer lugar el cliente envia un **betDTO** compuesto por:
 
 El server recibe el betDTO y envia un **AckDTO**:
 1. operation_type (u8): 1 byte 
-2. response (u8): 1 byte | indica 0 si recibio ok el mensaje 
+2. response (u8): 1 byte | Es 0 (ACK_SUCCESS_BET) si recibio bien el betDTO el server.
 3. current_status (string): 2 bytes + bytes del string: | se usa para mandar algun mensaje mas descriptivo de la situacion.
 
 El cliente recibe el ackDTO y termina. Ese es todo el protocolo por ahora en el ejercicio 5. 
