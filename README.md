@@ -27,13 +27,14 @@ En este ejercicio se agrega un nuevo DTO: **BatchDTO** basicamente esta compuest
 
 El server recibe el BatchDTO y envia un **AckDTO** como confirmacion del mensaje:
 1. operation_type (u8): 1 byte 
-2. response (u8): 1 byte | indica 0 si recibio ok el mensaje, 1 si hubo un error (En este caso **se considera error los number mayor a 9998**).
+2. response (u8): 1 byte | Es 0 (ACK_SUCCESS_BATCH) si recibio bien el BatchDto elserver, 
+    si hubo alguna apuesta con error (**👉 Se considera error los number mayor a 9998**) tiene valor 1 (ACK_ERROR_IN_BET_BATCH).
 3. current_status (string): 2 bytes + bytes del string.
 
 
 Si hubo algun error o no el server loggea el resultado final de revisar el BatchDTO:
-1. Si hubo error el server manda un ACK con el response 1 y el mensaje del error. 
-2. Si no hubo error el server manda un ACK con el response en 0 y el mensaje exitoso.
+1. Si hubo error el server manda un ACK con el response 1 (ACK_ERROR_IN_BET_BATCH) y el mensaje del error. 
+2. Si no hubo error el server manda un ACK con el response en 0 (ACK_SUCCESS_BATCH) y el mensaje exitoso.
 
 El cliente recibe el AckDTO y muestra el mensaje ya sea de error o no.
 
