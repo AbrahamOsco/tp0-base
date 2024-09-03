@@ -2,7 +2,7 @@ import logging
 import signal 
 from socketTCP import SocketTCP
 from common.serverProtocol import ServerProtocol
-from DTO.ackDTO import AckDTO
+from DTO.ackDTO import AckDTO, ACK_SUCCESS_BATCH, ACK_ERROR_IN_BET_BATCH
 from common.utils import store_batch_dto
 MAX_TICKET_NUMBER = 9998
 
@@ -35,11 +35,11 @@ class Server:
         ack_dto = None
         for bet_dto in bets:
             if bet_dto.number >= MAX_TICKET_NUMBER:
-                ack_dto = AckDTO(response=1, current_status="There was an error with at least" +
+                ack_dto = AckDTO(response=ACK_ERROR_IN_BET_BATCH, current_status="There was an error with at least" +
                                 f"one of the bets: invalid ticket number {bet_dto.number}.")
                 bets.remove(bet_dto)
         if not ack_dto:
-            ack_dto = AckDTO(response=0, current_status="list of bet dto stored successfully")
+            ack_dto = AckDTO(response=ACK_SUCCESS_BATCH, current_status="list of bet dto stored successfully")
             logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
         else:
             logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(bets)}")
