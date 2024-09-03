@@ -1,6 +1,8 @@
 from protocol import Protocol 
 from DTO.betDTO import BetDTO
 from DTO.ackDTO import AckDTO, OPERATION_TYPE_ACK
+from DTO.batchDTO import BatchDTO
+
 import logging
 
 
@@ -18,6 +20,12 @@ class ClientProtocol(Protocol):
         self.send_string(bet_DTO.birthday)
         self.send_number_2_bytes(bet_DTO.number)
 
+    def send_batch_dto(self, batchDTO):
+        self.send_number_1_byte(batchDTO.operation_type)
+        self.send_number_2_bytes(len(batchDTO.bets))
+        for bet in batchDTO.bets:
+            self.send_bet_dto(bet)
+                
     def recv_ack_dto(self) -> AckDTO:
         operation_type = self.recv_number_1_byte()
         if operation_type != OPERATION_TYPE_ACK:

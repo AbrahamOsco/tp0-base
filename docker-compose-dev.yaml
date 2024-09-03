@@ -17,6 +17,7 @@ services:
     image: client:latest
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-1.csv:/dataset/agency-1.csv
     entrypoint: python3 /main.py
     environment:
       - CLI_ID=1
@@ -36,6 +37,7 @@ services:
     image: client:latest
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-2.csv:/dataset/agency-2.csv
     entrypoint: python3 /main.py
     environment:
       - CLI_ID=2
@@ -55,6 +57,7 @@ services:
     image: client:latest
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-3.csv:/dataset/agency-3.csv
     entrypoint: python3 /main.py
     environment:
       - CLI_ID=3
@@ -74,6 +77,7 @@ services:
     image: client:latest
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-4.csv:/dataset/agency-4.csv
     entrypoint: python3 /main.py
     environment:
       - CLI_ID=4
@@ -93,6 +97,7 @@ services:
     image: client:latest
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/dataset/agency-5.csv:/dataset/agency-5.csv
     entrypoint: python3 /main.py
     environment:
       - CLI_ID=5

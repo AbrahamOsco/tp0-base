@@ -4,15 +4,20 @@ import time
 import signal
 from socketTCP import SocketTCP
 from DTO.betDTO import BetDTO
+from DTO.batchDTO import BatchDTO
 from common.clientProtocol import ClientProtocol
 from common.clientConfiguration import ClientConfiguration
+from common.agencyReader import AgencyReader
+
+MAX_BATCH_SIZE = 8192
 
 class Client:
     
-    def __init__(self, client_configuration: ClientConfiguration):
+    def __init__(self, client_configuration: ClientConfiguration, batch_max_amount :int):
         self.client_config = client_configuration
         self.was_killed = False
         signal.signal(signal.SIGTERM, self.handling_signal_sigterm)
+        self.agency_reader = AgencyReader(self.client_config.id, batch_max_amount)
 
     def handling_signal_sigterm(self, signum, frame):
         logging.info(f"action: receive_signal | result : success | client_id: {self.client_config.id} | signal_number: {signum} ")
@@ -28,10 +33,12 @@ class Client:
         return is_connected
 
     def close_socket(self):
-        self.socket.close()
-        if self.socket.is_closed():
+        if(self.socket):
+            self.socket.close()
             logging.info(f"action: closing_socket | result: sucess| socket closed : {self.socket.is_closed()} ")
-    
+        else: 
+            logging.info(f"action: closing_socket | result: fail| socket does not exist")
+        
     def get_bet_dto(self) -> BetDTO:
         name = os.getenv("NOMBRE")
         last_name = os.getenv("APELLIDO")
@@ -43,25 +50,46 @@ class Client:
             self.socket.close()
             return None
         return BetDTO(int(self.client_config.id), name, last_name, dni, birthday, number)
-        
-    def run(self):
+    
+    def get_batch_dto(self) -> BatchDTO:
+        while True:
+            bets = self.agency_reader.get_next_batch()
+            if bets == None:
+                return None
+            batchDTO = BatchDTO(bets)
+            bytes_total_size = batchDTO.get_bytes_total_size()
+            if bytes_total_size > MAX_BATCH_SIZE:
+                logging.info(f"action: get_batch_dto | result: fail | event: batch size is too big | bytes_total_size: {bytes_total_size}")
+                continue
+            logging.info(f"action: get_batch_dto | result: sucess | event: batch size is correct | bytes_total_size: {bytes_total_size}")
+            return batchDTO
+
+    def handler_dto_messages(self, batch_dto: BatchDTO):
+        self.protocol.send_batch_dto(batch_dto)
+        ack_dto = self.protocol.recv_ack_dto()
+        if ack_dto.response == 0:
+            logging.info(f"action: apuestas_enviadas | result: success | event: {ack_dto.current_status} ")
+        else:
+            logging.error(f"action: apuestas_enviadas | result: fail | event: {ack_dto.current_status} ")
+
+    def start(self):
         for i in range(self.client_config.loop_amount):
             if (not self.connect() or self.was_killed):
                 return
             try:
-                bet_dto = self.get_bet_dto()
-                if not bet_dto: 
+                batch_dto = self.get_batch_dto()
+                if not batch_dto:
                     return
-                self.protocol.send_bet_dto(bet_dto)
-                ack_dto = self.protocol.recv_ack_dto()
-                if ack_dto.response == 0:
-                    logging.info(f"action: apuesta_enviada | result: success | dni: ${bet_dto.dni} | numero: ${bet_dto.number}")
+                self.handler_dto_messages(batch_dto)
             except (OSError, RuntimeError) as e:
                 logging.error(f"action: receive_message | result: fail | client_id: {self.client_config.id} | error: {e}")
-                self.close_socket()
                 return
             self.close_socket()
-            #logging.info(f"action: receive_message | result: success | client_id: {self.client_config.id} | msg: {msg}")
             time.sleep(self.client_config.loop_period)
         logging.info(f"action: loop_finished | result: success | client_id: {self.client_config.id}")
+        
+    def run(self):
+        self.start()
+        self.close_socket()
+        self.agency_reader.close()
 

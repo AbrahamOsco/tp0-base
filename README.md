@@ -2,41 +2,40 @@
 ## Parte 2: Repaso de Comunicaciones
 
 ### Ejercicio N°6:
-Modificar los clientes para que envíen varias apuestas a la vez (modalidad conocida como procesamiento por chunks o batchs). La información de cada agencia será simulada por la ingesta de su archivo numerado correspondiente, provisto por la cátedra dentro de .data/datasets.zip. Los batchs permiten que el cliente registre varias apuestas en una misma consulta, acortando tiempos de transmisión y procesamiento.
+Modificar los clientes para que envíen varias apuestas a la vez (modalidad conocida como procesamiento por _chunks_ o _batchs_). La información de cada agencia será simulada por la ingesta de su archivo numerado correspondiente, provisto por la cátedra dentro de `.data/datasets.zip`.
+Los _batchs_ permiten que el cliente registre varias apuestas en una misma consulta, acortando tiempos de transmisión y procesamiento.
 
-En el servidor, si todas las apuestas del batch fueron procesadas correctamente, imprimir por log: action: apuesta_recibida | result: success | cantidad: ${CANTIDAD_DE_APUESTAS}. En caso de detectar un error con alguna de las apuestas, debe responder con un código de error a elección e imprimir: action: apuesta_recibida | result: fail | cantidad: ${CANTIDAD_DE_APUESTAS}.
+En el servidor, si todas las apuestas del *batch* fueron procesadas correctamente, imprimir por log: `action: apuesta_recibida | result: success | cantidad: ${CANTIDAD_DE_APUESTAS}`. En caso de detectar un error con alguna de las apuestas, debe responder con un código de error a elección e imprimir: `action: apuesta_recibida | result: fail | cantidad: ${CANTIDAD_DE_APUESTAS}`.
 
-La cantidad máxima de apuestas dentro de cada batch debe ser configurable desde config.yaml. Respetar la clave batch: maxAmount, pero modificar el valor por defecto de modo tal que los paquetes no excedan los 8kB.
+La cantidad máxima de apuestas dentro de cada _batch_ debe ser configurable desde config.yaml. Respetar la clave `batch: maxAmount`, pero modificar el valor por defecto de modo tal que los paquetes no excedan los 8kB. 
 
-El servidor, por otro lado, deberá responder con éxito solamente si todas las apuestas del batch fueron procesadas correctamente.
+El servidor, por otro lado, deberá responder con éxito solamente si todas las apuestas del _batch_ fueron procesadas correctamente.
+
 
 ### Solucion : 
-1. Como cada cliente (Agencia quinela) envia una unica apuesta (no tiene sentido q se envie 5 veces el mismo numero) cambie el loop amount a 1. 
-1. Para la implementacion del protocolo se uso el patron DTO creando los DTO: ackDTO y betDTO.
-1. Ademas se creo la clase socketTCP que encapsula el comporaiento para evitar los short read/write y ademas recibe solo bytes y retorna bytes, es el protocolo quien se encarga de pasar los numeros (u8) (u16) (strings) a bytes para luego enviarlo por el objeto socket.
-1. Se crearon las clases ServerProtocol y ClientProtocol ambos heredan de Protocol, esto para hacer escalable cuando hayan mas tipos de mensaje, 
-ademas reduce la probabilidad de problemas en los protocolo debido a la simetria de los send y recv de los DTOs, hace muy dificil equivocarse, un ejemplo:
-1. Si el ClientProtocol tiene un metodo que es send_bet_dto(a_bet_dto) entonces el server tendra su metodo **simetrico** recv_bet_dto().
-1. 👉 Cuando se envia un string se envia en primer lugar 2 bytes (u16) con el tamaño del string en bytes y luego se envia el string (en bytes-codificado a utf8), el que recibe es lo mismo recibe primero los 2 bytes (u16) y con eso ya sabe cuantos bytes esperar para obtener el string.
-
+1. Se creo la clase agencyReader para desacoplar la logica de la lectura del csv del client.
+2. Se garantiza la liberacion de recursos al recibir una SIGTERM en el caso de cliente o server.  
+3. Se cambia el amount a 10, el loop a 100 para enviar varios BatchDTO, el period a 1s para poder enviar mas seguido y no dormir tanto 😴.
+4. Se calcula el peso de cada BatchDTO y se compara con la CTE **MAX_BATCH_SIZE** (8192) si es mayor no se envia el BatchDTO (podemos verlo con un amount = 800 ).
 
 ### Protocolo: 
-En primer lugar el cliente envia un **betDTO** compuesto por: 
-1. operation_type (u8): 1 byte | sirve para identificar el tipo de operacion cada dto tiene uno. 
-2. agency_id (u8): 1 byte | id de la agencia.
-3. name (string): 2 bytes (u16:tamanio del string codificado) + bytes del strings |
-4. last_name (string): 2 bytes + bytes del string
-5. dni (string):  2 bytes + bytes del string.
-6. birthday (string): 2 bytes + bytes del string.
-7. number: (u16) 2 bytes : numero de la apuesta.   
+Protocolo mas basico explicado desde cero en el EJ5.
+En este ejercicio se agrega un nuevo DTO: **BatchDTO** basicamente esta compuesto por: 
+1. operation_type (u8): 1 byte
+2. Una lista de BetDTO: para su serializacion se envia 2 bytes | (Para el tamanio de la lista) y luego se envia cada BetDTO. 
+3. El protocolo para como enviar cada BetDTO esta en el ej5. Aca se reutiliza los metodos como **send_bet_dto**, **recv_bet_dto** de Client protocol y server protocol respectivamente. 
 
-El server recibe el betDTO y envia un **AckDTO**:
+El server recibe el BatchDTO y envia un **AckDTO** como confirmacion del mensaje:
 1. operation_type (u8): 1 byte 
-2. response (u8): 1 byte | indica 0 si recibio ok el mensaje 
-3. current_status (string): 2 bytes + bytes del string: | se usa para mandar algun mensaje mas descriptivo de la situacion.
+2. response (u8): 1 byte | indica 0 si recibio ok el mensaje, 1 si hubo un error (En este caso **se considera error los number mayor a 9998**).
+3. current_status (string): 2 bytes + bytes del string.
 
-El cliente recibe el ackDTO y termina. Ese es todo el protocolo por ahora en el ejercicio 5. 
-El servidor recibe correctamente las apuestas y las escribe en el csv. 
+
+Si hubo algun error o no el server loggea el resultado final de revisar el BatchDTO:
+1. Si hubo error el server manda un ACK con el response 1 y el mensaje del error. 
+2. Si no hubo error el server manda un ACK con el response en 0 y el mensaje exitoso.
+
+El cliente recibe el AckDTO y muestra el mensaje ya sea de error o no.
 
 ### Ejemplo: 
 1. Para ejecutar el programa usamos: 
@@ -51,5 +50,22 @@ El servidor recibe correctamente las apuestas y las escribe en el csv.
     ls
     cat bets.csv
 ```
-<img src = './img/ej5_1.png'>
+Con un amount = 10 y loop = 100 entonces podemos obtener los 1000 primeras apuestas y guardarlas en el bets.csv del server.
+<img src= './img/ej6_part1.png'>
+Observamos como que el bets.csv del server tiene las ultimas 10 apuestas de las 1000 primeras de la agency-1.csv idem con las demas
+agency, (considerando que no hubo apuestas con errores)
+
+Tambien se obtienen las apuestas con errores y se printean los logs correspondientes:
+En el server:
+```
+    docker logs server
+```
+<img src= './img/ej6_part2.png'>
+
+En el cliente (caso de la agencia3 que tenia un number = 998):
+``` 
+    docker logs client3
+```
+<img src= './img/ej6_part3.png'>
+
 

@@ -3,7 +3,8 @@ import signal
 from socketTCP import SocketTCP
 from common.serverProtocol import ServerProtocol
 from DTO.ackDTO import AckDTO
-from common.utils import store_bet_dto
+from common.utils import store_batch_dto
+MAX_TICKET_NUMBER = 9998
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -18,12 +19,6 @@ class Server:
         logging.info(f"action: closing_acceptor_socket | result : success | socket_closed: {self.socket_acceptor.is_closed()}")
 
     def run(self):
-        """
-        Dummy Server loop
-        Server that accept a new connections and establishes a
-        communication with a client. After client with communucation
-        finishes, servers starts to accept new connections again
-        """
         while not self.was_killed:
             socket_peer = self.accept_new_connection()
             if (socket_peer != None):
@@ -31,32 +26,40 @@ class Server:
                 self.protocol = ServerProtocol(socket_peer)
                 self.handle_client_connection()
 
+    def handler_dto_messages(self, batch_dto):
+        batch_dto = self.protocol.recv_batch_dto()
+        self.handler_ack_dto(batch_dto)
+
+    def handler_ack_dto(self, batch_dto):
+        bets = batch_dto.bets
+        ack_dto = None
+        for bet_dto in bets:
+            if bet_dto.number >= MAX_TICKET_NUMBER:
+                ack_dto = AckDTO(response=1, current_status="There was an error with at least" +
+                                f"one of the bets: invalid ticket number {bet_dto.number}.")
+                bets.remove(bet_dto)
+        if not ack_dto:
+            ack_dto = AckDTO(response=0, current_status="list of bet dto stored successfully")
+            logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
+        else:
+            logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(bets)}")
+        self.protocol.send_ack_dto(ack_dto)
+        store_batch_dto(bets)
+
     def handle_client_connection(self):
-        """
-        Read message from a specific client socket and closes the socket
-        If a problem arises in the communication with the client, the
-        client socket will also be closed
-        """
+        batch_dto = None
         try:
-            bet_dto = self.protocol.recv_bet_dto()
-            store_bet_dto(bet_dto)
-            logging.info(f"action: apuesta_almacenada | result: success | dni: ${bet_dto.dni} | numero: ${bet_dto.number}")
-            ack_dto = AckDTO(response=0, current_status="bet stored successfully")
-            self.protocol.send_ack_dto(ack_dto)
-            #logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg.rstrip()}')
+            self.handler_dto_messages(batch_dto)
         except (OSError, RuntimeError) as e:
-            logging.error(f"action: receive_message | result: fail | error: {e}")
+            if batch_dto != None:
+                logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(batch_dto.bets)}")
+            else:
+                logging.error(f"action: apuesta_recibida | result: fail | cantidad: 0 | event: probably the client disconnected")
         finally:
             self.socket_peer.close()
             logging.info(f"action: close_the_client_socket | result: sucess| socket closed : {self.socket_peer.is_closed()}")
 
     def accept_new_connection(self):
-        """
-        Accept new connections
-        Function blocks until a connection to a client is made.
-        Then connection created is printed and returned
-        """
-
         logging.info('action: accept_connections | result: in_progress')
         try:
             socket_peer, addr = self.socket_acceptor.accept()

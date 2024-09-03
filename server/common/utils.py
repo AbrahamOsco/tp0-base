@@ -2,6 +2,8 @@ import csv
 import datetime
 import time
 from DTO.betDTO import BetDTO
+from DTO.batchDTO import BatchDTO
+
 
 """ Bets storage location. """
 STORAGE_FILEPATH = "./bets.csv"
@@ -54,4 +56,12 @@ def store_bet_dto(bet_dto: BetDTO):
     bet = Bet(agency=bet_dto.agency_id, first_name=bet_dto.name, last_name=bet_dto.last_name,
                      document=bet_dto.dni, birthdate=bet_dto.birthday, number=bet_dto.number)   
     list_bet.append(bet)
+    store_bets(list_bet)
+
+def store_batch_dto(bets):
+    list_bet = []
+    for bet_dto in bets:
+        bet = Bet(agency=bet_dto.agency_id, first_name=bet_dto.name, last_name=bet_dto.last_name,
+                     document=bet_dto.dni, birthdate=bet_dto.birthday, number=bet_dto.number)   
+        list_bet.append(bet)
     store_bets(list_bet)

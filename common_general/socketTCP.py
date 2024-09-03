@@ -44,6 +44,7 @@ class SocketTCP:
     
     def is_closed(self) -> bool:
         return self.was_closed
+    
     # si handleo el error deben cerrar el socket desde afuera
     def handler_error_send_all(self, total_bytes_sent, error=""):
         logging.error(f"{error}")

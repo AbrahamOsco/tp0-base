@@ -72,7 +72,7 @@ def main():
     show_initial_log(config_parmas)
     client_config = ClientConfiguration(config_parmas.get("id"), config_parmas.get("server.address") ,
                                  config_parmas.get("loop.amount"), config_parmas.get("loop.period.s"))
-    client = Client(client_config)
+    client = Client(client_config, config_parmas["batch.maxAmount"])
     client.run()
     logging.shutdown()
 
