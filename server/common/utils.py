@@ -50,6 +50,13 @@ def load_bets() -> list[Bet]:
         for row in reader:
             yield Bet(row[0], row[1], row[2], row[3], row[4], row[5])
 
+def get_winners_dni():
+    winning_dnis = []
+    bets = load_bets()
+    for a_bet in bets:
+        if (has_won(a_bet)):
+            winning_dnis.append(a_bet.document)
+    return winning_dnis
 
 def store_bet_dto(bet_dto: BetDTO):
     list_bet = []

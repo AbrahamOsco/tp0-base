@@ -60,4 +60,4 @@ class Protocol:
             raise RuntimeError("action: recv_string | result: fail | ")
         string_decoded = str_in_bytes.decode(FORMAT_ENCODED)
         return string_decoded
-    
+        

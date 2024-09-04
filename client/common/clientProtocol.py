@@ -1,8 +1,9 @@
 from protocol import Protocol 
 from DTO.betDTO import BetDTO
+from DTO.notifyDTO import NotifyDTO
 from DTO.ackDTO import AckDTO, OPERATION_TYPE_ACK
 from DTO.batchDTO import BatchDTO
-
+from DTO.winnersDTO import WinnersDTO, OPERATION_TYPE_WINNERS
 import logging
 
 
@@ -33,4 +34,19 @@ class ClientProtocol(Protocol):
         response = self.recv_number_1_byte()
         current_status = self.recv_string()
         return AckDTO(response, current_status)
-
+    
+    def send_notify_dto(self, notify_dto: NotifyDTO):
+        self.send_number_1_byte(notify_dto.operation_type)
+        self.send_number_1_byte(notify_dto.agency_id)
+        self.send_number_1_byte(notify_dto.type_notification)
+    
+    def recv_winners_dto(self):
+        operation_type = self.recv_number_1_byte()
+        if operation_type != OPERATION_TYPE_WINNERS:
+            raise RuntimeError("Error: unknown operation type when receiving a ackDTO")
+        amount_winners = self.recv_number_2_bytes()
+        dnis = []
+        for _ in range(amount_winners):
+            a_dni = self.recv_string()
+            dnis.append(a_dni)
+        return dnis

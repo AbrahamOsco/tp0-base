@@ -3,20 +3,23 @@ import logging
 import time
 import signal
 from socketTCP import SocketTCP
+from DTO.notifyDTO import NotifyDTO, FIRST_NOTIFICATION, TELL_ME_WINNERS
 from DTO.betDTO import BetDTO
-from DTO.ackDTO import AckDTO, ACK_SUCCESS_BATCH, ACK_ERROR_IN_BET_BATCH
+from DTO.ackDTO import AckDTO, ACK_SUCCESS_BATCH, ACK_ERROR_IN_BET_BATCH, ACK_CALCULATING_WINNERS, ACK_DEFINED_WINNERS
 from DTO.batchDTO import BatchDTO
 from common.clientProtocol import ClientProtocol
 from common.clientConfiguration import ClientConfiguration
 from common.agencyReader import AgencyReader
 
 MAX_BATCH_SIZE = 8192
+TIME_SLEEP_FOR_NOTIFICATION = 5
 
 class Client:
     
     def __init__(self, client_configuration: ClientConfiguration, batch_max_amount :int):
         self.client_config = client_configuration
         self.was_killed = False
+        self.first_notification_sent = False
         signal.signal(signal.SIGTERM, self.handling_signal_sigterm)
         self.agency_reader = AgencyReader(self.client_config.id, batch_max_amount)
 
@@ -74,24 +77,47 @@ class Client:
         elif ack_dto.response == ACK_ERROR_IN_BET_BATCH:
             logging.error(f"action: apuestas_enviadas | result: fail | event: {ack_dto.current_status} ")
 
+    def get_winners(self):
+        while True:
+            if (not self.connect() or self.was_killed):
+                return
+            if not self.first_notification_sent:
+                self.first_notification_sent = True
+                self.protocol.send_notify_dto(NotifyDTO(int(self.client_config.id), FIRST_NOTIFICATION))
+                logging.info("action: send_notify_dto | result: success | event: first notification sent.")
+            
+            self.protocol.send_notify_dto(NotifyDTO(int(self.client_config.id), TELL_ME_WINNERS))
+            ack_dto = self.protocol.recv_ack_dto()
+            if ack_dto.response == ACK_CALCULATING_WINNERS:
+                logging.info("action: get_winners | result: in_progress | event: waiting for winners, go to sleep.")
+                self.close_socket_and_sleep(TIME_SLEEP_FOR_NOTIFICATION)
+            elif ack_dto.response == ACK_DEFINED_WINNERS:
+                winners = self.protocol.recv_winners_dto()
+                winnrers_dnis = " ".join(winners)
+                logging.info(f"action: consulta_ganadores | result: success | cant_ganadores: {len(winners)}.")
+                logging.info(f"action: winners | result: success | winners: 💯 🎖️ {winnrers_dnis}")
+                break
+    
+    def close_socket_and_sleep(self, seconds: float):
+        self.close_socket()
+        time.sleep(seconds)
 
     def start(self):
         for i in range(self.client_config.loop_amount):
+            batch_dto = self.get_batch_dto() #Si no hay batch para enviar no nos conectemos para inmediatamente desconectarnos.
+            if not batch_dto:
+                break   
             if (not self.connect() or self.was_killed):
                 return
             try:
-                batch_dto = self.get_batch_dto()
-                if not batch_dto:
-                    return
                 self.handler_dto(batch_dto)
             except (OSError, RuntimeError) as e:
                 logging.error(f"action: receive_message | result: fail | client_id: {self.client_config.id} | error: {e}")
                 return
-            self.close_socket()
-            time.sleep(self.client_config.loop_period)
-        
+            self.close_socket_and_sleep(self.client_config.loop_period)
         logging.info(f"action: loop_finished | result: success | client_id: {self.client_config.id}")
-        
+        self.get_winners()
+
     def run(self):
         self.start()
         self.close_socket()
