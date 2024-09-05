@@ -79,18 +79,18 @@ class Client:
 
     def get_winners(self):
         while True:
-            if (not self.connect() or self.was_killed):
+            if (self.was_killed):
                 return
             if not self.first_notification_sent:
                 self.first_notification_sent = True
                 self.protocol.send_notify_dto(NotifyDTO(int(self.client_config.id), FIRST_NOTIFICATION))
                 logging.info("action: send_notify_dto | result: success | event: first notification sent.")
-            
+
             self.protocol.send_notify_dto(NotifyDTO(int(self.client_config.id), TELL_ME_WINNERS))
             ack_dto = self.protocol.recv_ack_dto()
             if ack_dto.response == ACK_CALCULATING_WINNERS:
                 logging.info("action: get_winners | result: in_progress | event: waiting for winners, go to sleep.")
-                self.close_socket_and_sleep(TIME_SLEEP_FOR_NOTIFICATION)
+                time.sleep(TIME_SLEEP_FOR_NOTIFICATION)
             elif ack_dto.response == ACK_DEFINED_WINNERS:
                 winners = self.protocol.recv_winners_dto()
                 winnrers_dnis = " ".join(winners)
@@ -98,23 +98,20 @@ class Client:
                 logging.info(f"action: winners | result: success | winners: 💯 🎖️ {winnrers_dnis}")
                 break
     
-    def close_socket_and_sleep(self, seconds: float):
-        self.close_socket()
-        time.sleep(seconds)
-
     def start(self):
+        if not self.connect():
+            return
         for i in range(self.client_config.loop_amount):
-            batch_dto = self.get_batch_dto() #Si no hay batch para enviar no nos conectemos para inmediatamente desconectarnos.
+            batch_dto = self.get_batch_dto() 
             if not batch_dto:
                 break   
-            if (not self.connect() or self.was_killed):
+            if self.was_killed:
                 return
             try:
                 self.handler_dto(batch_dto)
             except (OSError, RuntimeError) as e:
                 logging.error(f"action: receive_message | result: fail | client_id: {self.client_config.id} | error: {e}")
                 return
-            self.close_socket_and_sleep(self.client_config.loop_period)
         logging.info(f"action: loop_finished | result: success | client_id: {self.client_config.id}")
         self.get_winners()
 
@@ -122,4 +119,5 @@ class Client:
         self.start()
         self.close_socket()
         self.agency_reader.close()
+
 

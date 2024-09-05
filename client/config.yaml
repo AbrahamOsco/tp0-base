@@ -2,9 +2,9 @@ id: 1
 server:
   address: "server:12345"
 loop:
-  amount: 450
+  amount: 500
   period: "1s"
 log:
   level: "INFO"
 batch:
-  maxAmount: 10
+  maxAmount: 95

@@ -4,7 +4,6 @@ import time
 from DTO.betDTO import BetDTO
 from DTO.batchDTO import BatchDTO
 
-
 """ Bets storage location. """
 STORAGE_FILEPATH = "./bets.csv"
 """ Simulated winner number in the lottery contest. """
@@ -50,6 +49,7 @@ def load_bets() -> list[Bet]:
         for row in reader:
             yield Bet(row[0], row[1], row[2], row[3], row[4], row[5])
 
+#Encapsula al load_bets, no es thread-safe
 def get_winners_dni():
     winning_dnis = []
     bets = load_bets()
@@ -58,6 +58,7 @@ def get_winners_dni():
             winning_dnis.append(a_bet.document)
     return winning_dnis
 
+
 def store_bet_dto(bet_dto: BetDTO):
     list_bet = []
     bet = Bet(agency=bet_dto.agency_id, first_name=bet_dto.name, last_name=bet_dto.last_name,
@@ -65,6 +66,7 @@ def store_bet_dto(bet_dto: BetDTO):
     list_bet.append(bet)
     store_bets(list_bet)
 
+# Encapsula al store_bets, tambien es no thread-safe.
 def store_batch_dto(bets):
     list_bet = []
     for bet_dto in bets:
@@ -72,3 +74,4 @@ def store_batch_dto(bets):
                      document=bet_dto.dni, birthdate=bet_dto.birthday, number=bet_dto.number)   
         list_bet.append(bet)
     store_bets(list_bet)
+
