@@ -8,7 +8,10 @@ En este ejercicio es importante considerar los mecanismos de sincronización a u
 En caso de que el alumno implemente el servidor Python utilizando _multithreading_,  deberán tenerse en cuenta las [limitaciones propias del lenguaje](https://wiki.python.org/moin/GlobalInterpreterLock).
 
 ### Solucion : 
-1. En primer lugar se modelo la clase ClientThread que representa la conexion del cliente en el servidor tiene en su estado:
+1. Para diseñar la solucion se hace uso de multithreading, como hay operaciones input/output (accept, recv, send del socket o el read/write de un file o un simple sleep) de espera, teniendo en cuenta el feature GIL no habria problema porque se ejecutan afuera del GIL (esto porque no hablamos con ningun objeto de python, asi que "libero al GIL" mientras esperamos).
+2. Extra: En operaciones de CPU Intensivas, si tenemos multiples thread haciendo computo, solo uno de ellos va a poder usar el interpreter de python a la vez.
+
+1. Se modelo la clase ClientThread que representa la conexion del cliente en el servidor tiene en su estado:
     1. El socket_peer respectivo (lo q nos retorna el accept)
     2. ProtectedStorage: para poder leer o cargar bets usando metodos thread-safe. 
     3. ProtectedNotificationCounter: Para contar las veces que se recibe un NotificationDTO de tipo FIRST_NOTIFICATION de manera thread/safe o obtener su valor del contador.
@@ -49,4 +52,3 @@ Con un amount= 500 y un maxAmount 95 se obtuvo los sgts ganadores:
 instancia de ClientThread. Liberamos todos los recursos de manera exitosa.
 
 <img src= "./img/ej8_part2.png">
-
