@@ -16,5 +16,5 @@ class ProtectedStorage:
         with self.lock:
             logging.info("action: load_for_get_winners_dni | result: success | event: take the lock 🔒")
             winners = get_winners_dni()
-            return winners
             logging.info("action: load_for_get_winners_dni | result: success | event: release the lock 🔓")
+            return winners

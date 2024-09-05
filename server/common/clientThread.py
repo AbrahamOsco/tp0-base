@@ -71,4 +71,3 @@ class ClientThread:
         self.thread.join()
         logging.info("action: join_thread_client | result: success | event: end 🔥🧵")
 
-
