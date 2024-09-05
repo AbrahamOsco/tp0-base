@@ -64,3 +64,17 @@ El servidor recibe correctamente las apuestas y las escribe en el csv.
 ```
 <img src = './img/ej5_1.png'>
 
+
+1. Garantizando la liberacion de recursos podemos ejecutar en medio de la ejecucion, para hacerlo cambiamos el loop-amount a 1000, y ejecutamos:
+
+```
+    docker kill --signal=SIGTERM server
+    docker kill --signal=SIGTERM client1
+    docker kill --signal=SIGTERM client2
+    docker kill --signal=SIGTERM client3
+    docker kill --signal=SIGTERM client4
+    docker kill --signal=SIGTERM client5
+``` 
+Observamos que se cierran el socket del cliente y del lado del server se cierra el socket aceptador(listener).
+<img src= './img/ej5_part2.png'>
+
