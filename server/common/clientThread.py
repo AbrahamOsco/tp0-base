@@ -30,9 +30,10 @@ class ClientThread:
         self.protected_notification_counter.increase(agency_id)
         self.handler_dto()
 
+    # Cada agencia obtiene solo sus ganadores fixeado! 💯.
     def handler_alredy_sent_notifications(self, agency_id:int):
         if self.protected_notification_counter.get_amount() == MAX_NUMBER_AGENCIES:
-            winning_dnis = self.protected_storage.get_winners_dni()
+            winning_dnis = self.protected_storage.get_winners_dni(agency_id)
             self.protocol.send_ack_dto(AckDTO(ACK_DEFINED_WINNERS, f"winners have been selected! 🔥"))
             self.protocol.send_winners_dto(WinnersDTO(winning_dnis))
         else:
@@ -52,8 +53,8 @@ class ClientThread:
             logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
         else:
             logging.error(f"action: apuesta_recibida | result: fail | cantidad: {len(bets)}")
+        self.protected_storage.store_batch_dto(bets) #guardo antes de enviar el ack Fixeado! 💯
         self.protocol.send_ack_dto(ack_dto)
-        self.protected_storage.store_batch_dto(bets)
     
     def run(self):
         logging.info("action: thread_client | result: success | event: start 🔥")

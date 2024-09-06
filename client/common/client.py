@@ -3,7 +3,7 @@ import logging
 import time
 import signal
 from socketTCP import SocketTCP
-from DTO.notifyDTO import NotifyDTO, FIRST_NOTIFICATION, TELL_ME_WINNERS
+from DTO.notifyDTO import NotifyDTO, FINISH_ALL_BETS, TELL_ME_WINNERS
 from DTO.betDTO import BetDTO
 from DTO.ackDTO import AckDTO, ACK_SUCCESS_BATCH, ACK_ERROR_IN_BET_BATCH, ACK_CALCULATING_WINNERS, ACK_DEFINED_WINNERS
 from DTO.batchDTO import BatchDTO
@@ -83,7 +83,7 @@ class Client:
                 return
             if not self.first_notification_sent:
                 self.first_notification_sent = True
-                self.protocol.send_notify_dto(NotifyDTO(int(self.client_config.id), FIRST_NOTIFICATION))
+                self.protocol.send_notify_dto(NotifyDTO(int(self.client_config.id), FINISH_ALL_BETS)) #  Asigno un mejor nombre fixeado 💯
                 logging.info("action: send_notify_dto | result: success | event: first notification sent.")
 
             self.protocol.send_notify_dto(NotifyDTO(int(self.client_config.id), TELL_ME_WINNERS))

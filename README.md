@@ -35,7 +35,7 @@ y **get_winners_dni** (encapsula el metodo **load_bets**) para que los multiples
 ``` 
 Con un amount= 500 y un maxAmount 95 se obtuvo los sgts ganadores:
 
-<img src= "./img/ej8_part1.png">
+<img src= "./img/ej8_fix_1.png">
 
 2. Garantizando la liberacion de recursos podemos ejecutar en medio de la ejecucion: 
 

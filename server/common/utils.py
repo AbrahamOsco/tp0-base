@@ -50,11 +50,11 @@ def load_bets() -> list[Bet]:
             yield Bet(row[0], row[1], row[2], row[3], row[4], row[5])
 
 #Encapsula al load_bets, no es thread-safe
-def get_winners_dni():
+def get_winners_dni(agency_id: int):
     winning_dnis = []
     bets = load_bets()
     for a_bet in bets:
-        if (has_won(a_bet)):
+        if (has_won(a_bet) and a_bet.agency == agency_id):
             winning_dnis.append(a_bet.document)
     return winning_dnis
 
